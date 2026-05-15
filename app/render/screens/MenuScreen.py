@@ -6,8 +6,8 @@ from app.backend.colors import yellow
 from app.backend.structures.Screen import Screen
 
 from app.backend.utils import center_visible, visible_len
+from app.render.logo import render_logo
 from app.render.screens.GameScreen import GameScreen
-
 
 
 def render_button(full_width: int, text: str, content_width: int):
@@ -54,7 +54,9 @@ class MenuScreen(Screen):
         width, height, _, _ = process.channel.get_terminal_size()
         clear(process)
 
-        render_y = height // 2 - (len(MENU) * 3) // 2
+        process.stdout.write(render_logo(width))
+
+        render_y = height // 2 - (len(MENU) * 3) // 2 - 12
 
         process.stdout.write("\n" * render_y)
 

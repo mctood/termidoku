@@ -12,3 +12,12 @@ def center_visible(text: str, width: int):
     right_outer = outer_padding - left_outer
 
     return " " * left_outer + text + " " * right_outer
+
+def check_win(board: list[list[int]]) -> bool:
+    win = True
+    for row in board:
+        for col in row:
+            if col == 0:
+                win = False
+                break
+    return win

@@ -6,6 +6,7 @@ def color(text: str, code: int, bold: bool = True) -> str:
 
 
 # foreground
+def black(text): return color(text, 30)
 def red(text): return color(text, 31)
 def green(text): return color(text, 32)
 def yellow(text): return color(text, 33)
