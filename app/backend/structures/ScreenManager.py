@@ -1,4 +1,6 @@
 from app.backend.structures.Screen import Screen
+from app.backend.utils import REQUIRED_WIDTH
+from app.render.screens.NarrowScreen import NarrowScreen
 
 
 class ScreenManager:
@@ -7,7 +9,11 @@ class ScreenManager:
     def __init__(self, initial: Screen):
         self.current = initial
 
-    async def render(self, process, clear):
+    async def render(self, process, clear, width: int, height: int):
+        if width < REQUIRED_WIDTH:
+            await NarrowScreen().render(process, clear)
+            return
+
         await self.current.render(process, clear)
 
     async def on_keypress(self, process, char):

@@ -1,6 +1,7 @@
 import re
 
 ANSI_RE = re.compile(r'\x1b\[[0-9;]*m')
+REQUIRED_WIDTH = 64
 
 
 def visible_len(text: str) -> int:
