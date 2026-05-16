@@ -62,6 +62,8 @@ class GameScreen(Screen):
         self.started_at = monotonic()
         self.total_cells = len(self.user_cells)
         self.render_task: Optional[Task] = None
+        self.error_until = 0.0
+        self.error_position: tuple[int, int] | None = None
 
     async def auto_render(self, process):
         while True:
@@ -76,6 +78,9 @@ class GameScreen(Screen):
         seconds = elapsed % 60
 
         return f"{hours}:{minutes:02}:{seconds:02}"
+
+    def is_error_active(self) -> bool:
+        return monotonic() < self.error_until
 
 
     def get_filled_count(self) -> int:
@@ -97,13 +102,21 @@ class GameScreen(Screen):
         width, height, _, _ = process.channel.get_terminal_size()
 
         filled = self.get_filled_count()
+        error_active = self.is_error_active()
 
         header = render_title(width, [
             f"SUDOKU [{DIFFICULTIES[self.difficulty].upper()}]",
             self.get_elapsed_time(),
             f"{filled}/{self.total_cells} FILLED",
         ])
-        board = render_board(self.board.board, self.user_cells, width, self.x, self.y)
+        board = render_board(
+            self.board.board,
+            self.user_cells,
+            width,
+            self.x,
+            self.y,
+            self.error_position if error_active else None,
+        )
 
         margin_top = height // 2 - 14 // 2
 
@@ -113,7 +126,15 @@ class GameScreen(Screen):
             if i != 3:
                 lives_indicator += " "
 
-        status = center_visible(lives_indicator, width) + "\n" + center_visible(f"{self.lives} / 3", width)
+        error_notice = center_visible(
+            bg_red(black(" Wrong number! ")) if error_active else " ",
+            width
+        )
+        status = (
+            center_visible(lives_indicator, width) + "\n" +
+            center_visible(f"{self.lives} / 3", width) + "\n" +
+            error_notice
+        )
         menu = render_menu(width, self.y)
         footer = render_title(width, [
             "ROGATKA, 2026",
@@ -169,6 +190,8 @@ class GameScreen(Screen):
         if key.isdigit() and int(key) != 0 and (self.x, self.y) in self.user_cells:
             try:
                 self.board.place(self.x, self.y, int(key))
+                self.error_position = None
+                self.error_until = 0.0
 
                 if check_win(self.board.board):
                     await process._diff_renderer.render(process, process._screen_manager, lambda _: None)
@@ -179,6 +202,8 @@ class GameScreen(Screen):
                     return WinScreen()
             except ValueError:
                 self.lives -= 1
+                self.error_position = (self.x, self.y)
+                self.error_until = monotonic() + 0.9
                 if self.lives <= 0:
                     await process._diff_renderer.render(process, process._screen_manager, lambda _: None)
                     await sleep(1)

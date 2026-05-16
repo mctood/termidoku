@@ -57,7 +57,14 @@ def render_separator(current_x: int) -> str:
     return "".join(separator_chars)
 
 
-def render_board(board: list[list[int]], user_cells: list[tuple[int, int]], width: int, current_x: int, current_y: int) -> str:
+def render_board(
+    board: list[list[int]],
+    user_cells: list[tuple[int, int]],
+    width: int,
+    current_x: int,
+    current_y: int,
+    error_position: tuple[int, int] | None = None,
+) -> str:
     lines: list[str] = []
     user_cells_set = set(user_cells)
     digit = board[current_y - 1][current_x - 1]
@@ -71,7 +78,12 @@ def render_board(board: list[list[int]], user_cells: list[tuple[int, int]], widt
             position = (x + 1, y + 1)
             cell = str(value) if value != 0 else " "
 
-            if position == (current_x, current_y):
+            if position in user_cells_set:
+                cell = yellow(cell)
+
+            if position == error_position:
+                cell = black(bg_red(cell))
+            elif position == (current_x, current_y):
                 cell = black(cell)
                 if position in user_cells_set:
                     cell = bg_yellow(cell)
@@ -79,9 +91,6 @@ def render_board(board: list[list[int]], user_cells: list[tuple[int, int]], widt
                     cell = bg_white(cell)
             elif y + 1 == current_y or x + 1 == current_x:
                 cell = bg_black(cell)
-
-            if position in user_cells_set:
-                cell = yellow(cell)
 
             if value == digit and digit != 0:
                 cell = red(cell)
