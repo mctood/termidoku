@@ -2,11 +2,10 @@ from typing import Callable
 
 from asyncssh import SSHServerProcess
 
-from app.backend.colors import yellow, blue, black, bg_yellow
+from app.backend.colors import yellow, black, bg_yellow
 from app.backend.structures.Screen import Screen
-from app.render.helpers import center_visible, get_quote, DIFFICULTIES
+from app.render.helpers import center_visible, DIFFICULTIES
 
-from app.render.logo import render_logo
 from app.render.screens.GameScreen import GameScreen
 
 

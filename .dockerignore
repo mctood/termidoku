@@ -1,0 +1,12 @@
+.git
+.idea
+.venv
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.log
+.env
+data/
+ssh_host_key
+ssh_host_key.pub

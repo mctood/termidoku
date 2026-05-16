@@ -1,0 +1,12 @@
+services:
+  termidoku:
+    build:
+      context: .
+    container_name: termidoku
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "${SSH_PORT}:${SSH_PORT}"
+    volumes:
+      - ./data:/app/data

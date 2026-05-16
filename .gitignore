@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.env
+data/
+ssh_host_key
+ssh_host_key.pub

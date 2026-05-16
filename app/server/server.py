@@ -1,4 +1,6 @@
 import asyncio
+import os
+
 import asyncssh
 
 from app.render.handler import handle
@@ -6,21 +8,22 @@ from app.render.handler import handle
 
 class SSHServer(asyncssh.SSHServer):
     def begin_auth(self, username):
-        # Разрешаем вход без пароля для любых пользователей
         return False
 
 
 async def start():
-    # Создаем сервер. Важно: для интерактивного ввода клиент должен запросить PTY
-    # (обычный ssh-клиент делает это автоматически).
+    host = os.getenv("SSH_HOST", "0.0.0.0")
+    port = int(os.getenv("SSH_PORT", "2222"))
+    host_key_path = os.getenv("SSH_HOST_KEY_PATH", "ssh_host_key")
+
     await asyncssh.create_server(
         SSHServer,
-        "",
-        2222,
-        server_host_keys=["ssh_host_key"],  # Убедитесь, что файл ключа существует
+        host,
+        port,
+        server_host_keys=[host_key_path],
         process_factory=handle,
     )
-    print("Сервер запущен на порту 2222")
+    print(f"Server running on {host}:{port}")
     await asyncio.Future()
 
 
