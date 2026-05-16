@@ -56,7 +56,7 @@ class DifficultyScreen(Screen):
         render_y = height // 2 - (len(DIFFICULTIES) * 3) // 2 - 2
 
         process.stdout.write("\n" * render_y)
-        process.stdout.write(title + "\n")
+        process.stdout.write(title + "\n\n")
         process.stdout.write(buttons)
         process.stdout.write("\n\n")
 

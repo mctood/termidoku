@@ -72,7 +72,7 @@ class MenuScreen(Screen):
 
         process.stdout.write(logo)
 
-        render_y = height // 2 - (len(MENU) * 3) // 2 - 12
+        render_y = height // 2 - (len(MENU) * 3) // 2 - 7
 
         process.stdout.write("\n" * render_y)
         process.stdout.write(buttons)

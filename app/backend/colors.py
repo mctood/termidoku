@@ -2,7 +2,15 @@ RESET = "\033[0m"
 
 def color(text: str, code: int, bold: bool = True) -> str:
     prefix = "1;" if bold else ""
-    return f"\033[{prefix}{code}m{text}{RESET}"
+    start = f"\033[{prefix}{code}m"
+
+    if "\n" not in text:
+        return f"{start}{text}{RESET}"
+
+    return "\n".join(
+        f"{start}{line}{RESET}"
+        for line in text.split("\n")
+    )
 
 
 # foreground
