@@ -54,6 +54,7 @@ class GameScreen(Screen):
             for x, cell in enumerate(row):
                 if cell == 0:
                     self.user_cells.append((x + 1, y + 1))
+
         self.x = 1
         self.y = 1
         self.mode = "board"
@@ -123,8 +124,8 @@ class GameScreen(Screen):
         process.stdout.write(header)
         process.stdout.write("\n" * margin_top)
         process.stdout.write(board)
-        process.stdout.write("\n" + status)
-        process.stdout.write("\n" + menu)
+        process.stdout.write("\n\n" + status)
+        process.stdout.write("\n\n" + menu)
 
         used_lines = (
             rendered_line_count(header) +

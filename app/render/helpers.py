@@ -63,7 +63,7 @@ def render_board(board: list[list[int]], user_cells: list[tuple[int, int]], widt
                 if (x + 1, y + 1) in user_cells:
                     cell = bg_yellow(cell)
                 else:
-                    cell = bg_magenta(cell)
+                    cell = bg_white(cell)
             if (x + 1, y + 1) in user_cells:
                 cell = yellow(cell)
 
