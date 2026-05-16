@@ -1,5 +1,5 @@
 from app.backend.structures.Screen import Screen
-from app.backend.utils import REQUIRED_WIDTH
+from app.render.helpers import REQUIRED_WIDTH
 from app.render.screens.NarrowScreen import NarrowScreen
 
 

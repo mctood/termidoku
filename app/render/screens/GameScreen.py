@@ -9,46 +9,13 @@ from app.backend.colors import *
 from app.backend.generate import generate_sudoku
 from app.backend.structures.Board import Board
 from app.backend.structures.Screen import Screen
-from app.backend.utils import center_visible, check_win
+from app.backend.utils import check_win
+from app.render.helpers import center_visible, render_title, render_board, DIFFICULTIES
 
 MENU = [
     "View solution",
 ]
 
-
-def render_board(board: list[list[int]], user_cells: list[int], width: int, current_x: int, current_y: int) -> str:
-    lines: list[str] = []
-
-    separator = "───────┼───────┼───────"
-
-    for y, row in enumerate(board):
-        parts = []
-
-        for x, value in enumerate(row):
-            cell = str(value) if value != 0 else " "
-            if y + 1 == current_y and x + 1 == current_x:
-                cell = black(cell)
-                if (x, y) in user_cells:
-                    cell = bg_yellow(cell)
-                else:
-                    cell = bg_magenta(cell)
-            if (x, y) in user_cells:
-                cell = yellow(cell)
-
-
-            parts.append(cell)
-
-            if x % 3 == 2 and x != 8:
-                parts.append("│")
-
-        lines.append(" ".join(parts))
-
-        if y % 3 == 2 and y != 8:
-            lines.append(separator)
-
-    new_lines = [center_visible(line, width) for line in lines]
-
-    return "\n".join(new_lines)
 
 def render_menu(width: int, current_y: int) -> str:
     lines: list[str] = []
@@ -63,17 +30,26 @@ def render_menu(width: int, current_y: int) -> str:
 
     return "\n".join(lines)
 
-def render_title(width: int, sections: list[str]) -> str:
-    parts = [center_visible(s, width // len(sections)) for s in sections]
-    joined = "".join(parts)
-
-    return bg_white(black(joined + " " * (width - len(joined))))
 
 
 class GameScreen(Screen):
-    def __init__(self):
-        self.board = Board(generate_sudoku(20))
+    # noinspection PyTypeChecker
+    def __init__(self, difficulty: int):
+        self.difficulty = difficulty
+
+        if difficulty == 0:
+            missing = 20
+        elif difficulty == 1:
+            missing = 30
+        else:
+            missing = 40
+
+        board, answer = generate_sudoku(missing)
+        self.board = Board(board)
+        self.answer = Board(answer)
+
         self.user_cells = []
+
         for y, row in enumerate(self.board.board):
             for x, cell in enumerate(row):
                 if cell == 0:
@@ -85,8 +61,6 @@ class GameScreen(Screen):
         self.started_at = monotonic()
         self.total_cells = len(self.user_cells)
         self.render_task: Optional[Task] = None
-
-        print(self.user_cells)
 
     async def auto_render(self, process, clear):
         while True:
@@ -107,7 +81,7 @@ class GameScreen(Screen):
         filled = 0
 
         for x, y in self.user_cells:
-            if self.board.board[y][x] != 0:
+            if self.board.board[y - 1][x - 1] != 0:
                 filled += 1
 
         return filled
@@ -125,7 +99,7 @@ class GameScreen(Screen):
         filled = self.get_filled_count()
 
         process.stdout.write(render_title(width, [
-            "SUDOKU [DEFAULT]",
+            f"SUDOKU [{DIFFICULTIES[self.difficulty].upper()}]",
             self.get_elapsed_time(),
             f"{filled}/{self.total_cells} FILLED",
         ]))
@@ -150,7 +124,7 @@ class GameScreen(Screen):
         remains = height - margin_top - len(MENU) - 18
         process.stdout.write("\n" * remains)
         process.stdout.write(render_title(width, [
-            "ELIZAR S. 2026",
+            "ROGATKA, 2026",
             "ALL RIGHTS RESERVED",
             "CSAI ONE LOVE"
         ]))
@@ -175,10 +149,10 @@ class GameScreen(Screen):
 
         if key == "\r" and self.mode == "menu":
             if self.y == 10:
-                from app.render.screens.MenuScreen import MenuScreen
+                from app.render.screens.SolutionScreen import SolutionScreen
                 if self.render_task is not None:
                     self.render_task.cancel()
-                return MenuScreen()
+                return SolutionScreen(self.answer, self.user_cells)
 
         if key.isdigit() and int(key) != 0:
             from app.render.handler import clear_client

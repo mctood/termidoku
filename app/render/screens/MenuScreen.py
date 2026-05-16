@@ -2,12 +2,13 @@ from typing import Callable
 
 from asyncssh import SSHServerProcess
 
-from app.backend.colors import yellow
+from app.backend.colors import yellow, blue
 from app.backend.structures.Screen import Screen
+from app.render.helpers import center_visible, get_quote, render_title
 
-from app.backend.utils import center_visible, visible_len
 from app.render.logo import render_logo
-from app.render.screens.GameScreen import GameScreen
+from app.render.screens.CreditsScreen import CreditsScreen
+from app.render.screens.DifficultyScreen import DifficultyScreen
 
 
 def render_button(full_width: int, text: str, content_width: int):
@@ -48,6 +49,7 @@ class MenuScreen(Screen):
     def __init__(self):
         super().__init__()
 
+        self.quote = get_quote()
         self.selected = 0
 
     async def render(self, process: SSHServerProcess, clear: Callable[[SSHServerProcess], None]):
@@ -64,6 +66,18 @@ class MenuScreen(Screen):
             btn = render_button(width, text, BUTTON_WIDTH + 2 if i == self.selected else BUTTON_WIDTH)
             process.stdout.write(yellow(btn) if i == self.selected else btn)
 
+        process.stdout.write("\n\n")
+        process.stdout.write(center_visible(self.quote, width))
+        process.stdout.write(center_visible(f"tg: {blue('@rogatk')}", width))
+
+        remains = height // 2 - 9
+        process.stdout.write("\n" * remains)
+
+        process.stdout.write(render_title(width, [
+            "ARROWS - MOVE, ENTER - SELECT",
+            "PRESS 'Q' ANYTIME TO EXIT"
+        ]))
+
 
     async def on_keypress(self, process: SSHServerProcess, key: str | bytes):
         if key == 'q':
@@ -77,7 +91,9 @@ class MenuScreen(Screen):
 
         if key == '\r':
             if self.selected == 0:
-                return GameScreen()
+                return DifficultyScreen()
+            if self.selected == 1:
+                return CreditsScreen()
             if self.selected == 2:
                 from app.render.handler import clear_client
 

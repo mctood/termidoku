@@ -1,5 +1,5 @@
 class Board:
-    board = []
+    board: list[list[int]] = []
 
     @staticmethod
     def check(array: list[list[int]]) -> bool:

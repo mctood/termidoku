@@ -2,7 +2,7 @@ import random
 import copy
 
 
-def generate_sudoku(empty_cells: int = 40) -> list[list[int]]:
+def generate_sudoku(empty_cells: int = 40) -> tuple[list[list[int]], list[list[int]]]:
     board = [[0 for _ in range(9)] for _ in range(9)]
 
     def is_valid(board, x: int, y: int, value: int) -> bool:
@@ -75,6 +75,7 @@ def generate_sudoku(empty_cells: int = 40) -> list[list[int]]:
 
     # generate full board
     fill(board)
+    answer = copy.deepcopy(board)
 
     # remove cells while preserving uniqueness
     cells = [(x, y) for y in range(9) for x in range(9)]
@@ -96,4 +97,4 @@ def generate_sudoku(empty_cells: int = 40) -> list[list[int]]:
         else:
             removed += 1
 
-    return board
+    return board, answer
