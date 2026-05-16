@@ -165,7 +165,7 @@ class GameScreen(Screen):
                     self.render_task.cancel()
                 return SolutionScreen(self.answer, self.user_cells)
 
-        if key.isdigit() and int(key) != 0:
+        if key.isdigit() and int(key) != 0 and (self.x, self.y) in self.user_cells:
             try:
                 self.board.place(self.x, self.y, int(key))
 
@@ -177,14 +177,13 @@ class GameScreen(Screen):
                         self.render_task.cancel()
                     return WinScreen()
             except ValueError:
-                if (self.x, self.y) in self.user_cells:
-                    self.lives -= 1
-                    if self.lives <= 0:
-                        await process._diff_renderer.render(process, process._screen_manager, lambda _: None)
-                        await sleep(1)
-                        from app.render.screens.GameOverScreen import GameOverScreen
-                        if self.render_task is not None:
-                            self.render_task.cancel()
-                        return GameOverScreen()
+                self.lives -= 1
+                if self.lives <= 0:
+                    await process._diff_renderer.render(process, process._screen_manager, lambda _: None)
+                    await sleep(1)
+                    from app.render.screens.GameOverScreen import GameOverScreen
+                    if self.render_task is not None:
+                        self.render_task.cancel()
+                    return GameOverScreen()
 
         return None
