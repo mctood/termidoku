@@ -4,7 +4,7 @@ from asyncssh import SSHServerProcess
 
 from app.backend.colors import yellow, black, bg_yellow
 from app.backend.structures.Screen import Screen
-from app.render.helpers import center_visible, DIFFICULTIES
+from app.render.helpers import center_visible, DIFFICULTIES, rendered_line_count
 
 from app.render.screens.GameScreen import GameScreen
 
@@ -45,30 +45,26 @@ class DifficultyScreen(Screen):
 
     async def render(self, process: SSHServerProcess, clear: Callable[[SSHServerProcess], None]):
         width, height, _, _ = process.channel.get_terminal_size()
-        clear(process)
+        title = center_visible("Select Difficulty:", width)
+        buttons = "\n".join(
+            yellow(render_button(width, DIFFICULTIES[di], BUTTON_WIDTH + 2))
+            if di == self.selected else
+            render_button(width, DIFFICULTIES[di], BUTTON_WIDTH)
+            for di in DIFFICULTIES
+        )
 
         render_y = height // 2 - (len(DIFFICULTIES) * 3) // 2 - 2
 
         process.stdout.write("\n" * render_y)
-
-        process.stdout.write(center_visible("Select Difficulty:", width))
-        process.stdout.write("\n")
-
-        for di in DIFFICULTIES:
-            text = DIFFICULTIES[di]
-            btn = render_button(width, text, BUTTON_WIDTH + 2 if di == self.selected else BUTTON_WIDTH)
-            process.stdout.write(yellow(btn) if di == self.selected else btn)
-
-        process.stdout.write("\n")
+        process.stdout.write(title + "\n")
+        process.stdout.write(buttons)
+        process.stdout.write("\n\n")
 
         back_btn = center_visible("Go Back", 13)
         if self.selected == len(DIFFICULTIES):
             back_btn = black(bg_yellow(back_btn))
 
-        process.stdout.write(center_visible(
-            back_btn,
-            width
-        ))
+        process.stdout.write(center_visible(back_btn, width))
 
 
     async def on_keypress(self, process: SSHServerProcess, key: str | bytes):

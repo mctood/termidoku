@@ -4,7 +4,7 @@ from asyncssh import SSHServerProcess
 
 from app.backend.colors import yellow, blue
 from app.backend.structures.Screen import Screen
-from app.render.helpers import center_visible, get_quote, render_title
+from app.render.helpers import center_visible, get_quote, render_title, rendered_line_count
 
 from app.render.logo import render_logo
 from app.render.screens.CreditsScreen import CreditsScreen
@@ -54,29 +54,42 @@ class MenuScreen(Screen):
 
     async def render(self, process: SSHServerProcess, clear: Callable[[SSHServerProcess], None]):
         width, height, _, _ = process.channel.get_terminal_size()
-        clear(process)
+        logo = render_logo(width)
+        buttons = "\n".join(
+            yellow(render_button(width, text, BUTTON_WIDTH + 2))
+            if i == self.selected else
+            render_button(width, text, BUTTON_WIDTH)
+            for i, text in enumerate(MENU)
+        )
+        quote_block = (
+            center_visible(self.quote, width) + "\n" +
+            center_visible(f"tg: {blue('@rogatk')}", width)
+        )
+        footer = render_title(width, [
+            "ARROWS - MOVE, ENTER - SELECT",
+            "PRESS 'Q' ANYTIME TO EXIT"
+        ])
 
-        process.stdout.write(render_logo(width))
+        process.stdout.write(logo)
 
         render_y = height // 2 - (len(MENU) * 3) // 2 - 12
 
         process.stdout.write("\n" * render_y)
-
-        for i, text in enumerate(MENU):
-            btn = render_button(width, text, BUTTON_WIDTH + 2 if i == self.selected else BUTTON_WIDTH)
-            process.stdout.write(yellow(btn) if i == self.selected else btn)
-
+        process.stdout.write(buttons)
         process.stdout.write("\n\n")
-        process.stdout.write(center_visible(self.quote, width))
-        process.stdout.write(center_visible(f"tg: {blue('@rogatk')}", width))
+        process.stdout.write(quote_block)
 
-        remains = height // 2 - 9
+        used_lines = (
+            rendered_line_count(logo) +
+            render_y +
+            rendered_line_count(buttons) +
+            2 +
+            rendered_line_count(quote_block) -
+            3
+        )
+        remains = max(0, height - used_lines - rendered_line_count(footer))
         process.stdout.write("\n" * remains)
-
-        process.stdout.write(render_title(width, [
-            "ARROWS - MOVE, ENTER - SELECT",
-            "PRESS 'Q' ANYTIME TO EXIT"
-        ]))
+        process.stdout.write(footer)
 
 
     async def on_keypress(self, process: SSHServerProcess, key: str | bytes):

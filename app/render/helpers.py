@@ -28,6 +28,11 @@ DIFFICULTIES: dict[int, str] = {
 def visible_len(text: str) -> int:
     return len(ANSI_RE.sub('', text))
 
+def rendered_line_count(text: str) -> int:
+    if not text:
+        return 0
+    return text.count("\n") + 1
+
 def center_visible(text: str, width: int):
     outer_padding = max(0, width - visible_len(text))
     left_outer = outer_padding // 2

@@ -9,8 +9,6 @@ from app.render.logo import render_logo
 
 class CreditsScreen(Screen):
     async def render(self, process: SSHServerProcess, clear: Callable[[SSHServerProcess], None]):
-        clear(process)
-
         width, height, _, _ = process.channel.get_terminal_size()
 
         process.stdout.write(render_logo(width))

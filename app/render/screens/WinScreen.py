@@ -8,8 +8,6 @@ from app.render.helpers import center_visible
 
 class WinScreen(Screen):
     async def render(self, process: SSHServerProcess, clear: Callable[[SSHServerProcess], None]):
-        clear(process)
-
         width, height, _, _ = process.channel.get_terminal_size()
 
         process.stdout.write("\n\n" + center_visible("You Win!", width))

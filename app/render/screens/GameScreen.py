@@ -10,7 +10,7 @@ from app.backend.generate import generate_sudoku
 from app.backend.structures.Board import Board
 from app.backend.structures.Screen import Screen
 from app.backend.utils import check_win
-from app.render.helpers import center_visible, render_title, render_board, DIFFICULTIES
+from app.render.helpers import center_visible, render_title, render_board, DIFFICULTIES, rendered_line_count
 
 MENU = [
     "View solution",
@@ -62,10 +62,10 @@ class GameScreen(Screen):
         self.total_cells = len(self.user_cells)
         self.render_task: Optional[Task] = None
 
-    async def auto_render(self, process, clear):
+    async def auto_render(self, process):
         while True:
             await asyncio.sleep(1)
-            await self.render(process, clear)
+            await process._diff_renderer.render(process, process._screen_manager, lambda _: None)
 
     def get_elapsed_time(self) -> str:
         elapsed = int(monotonic() - self.started_at)
@@ -88,26 +88,23 @@ class GameScreen(Screen):
 
     async def render(self, process: SSHServerProcess, clear: Callable[[SSHServerProcess], None]):
         if self.render_task is None:
+            real_process = getattr(process, "_real_process", process)
             self.render_task = asyncio.create_task(
-                self.auto_render(process, clear)
+                self.auto_render(real_process)
             )
-
-        clear(process)
 
         width, height, _, _ = process.channel.get_terminal_size()
 
         filled = self.get_filled_count()
 
-        process.stdout.write(render_title(width, [
+        header = render_title(width, [
             f"SUDOKU [{DIFFICULTIES[self.difficulty].upper()}]",
             self.get_elapsed_time(),
             f"{filled}/{self.total_cells} FILLED",
-        ]))
+        ])
+        board = render_board(self.board.board, self.user_cells, width, self.x, self.y)
 
-        margin_top = height // 2 - 18 // 2
-        process.stdout.write("\n" * margin_top)
-
-        process.stdout.write(render_board(self.board.board, self.user_cells, width, self.x, self.y))
+        margin_top = height // 2 - 14 // 2
 
         lives_indicator = ""
         for i in range(1, 4):
@@ -115,19 +112,33 @@ class GameScreen(Screen):
             if i != 3:
                 lives_indicator += " "
 
-
-        process.stdout.write("\n" + center_visible(lives_indicator, width))
-        process.stdout.write(center_visible(f"{self.lives} / 3", width))
-
-        process.stdout.write("\n" + render_menu(width, self.y))
-
-        remains = height - margin_top - len(MENU) - 18
-        process.stdout.write("\n" * remains)
-        process.stdout.write(render_title(width, [
+        status = center_visible(lives_indicator, width) + "\n" + center_visible(f"{self.lives} / 3", width)
+        menu = render_menu(width, self.y)
+        footer = render_title(width, [
             "ROGATKA, 2026",
             "ALL RIGHTS RESERVED",
             "CSAI ONE LOVE"
-        ]))
+        ])
+
+        process.stdout.write(header)
+        process.stdout.write("\n" * margin_top)
+        process.stdout.write(board)
+        process.stdout.write("\n" + status)
+        process.stdout.write("\n" + menu)
+
+        used_lines = (
+            rendered_line_count(header) +
+            margin_top +
+            rendered_line_count(board) +
+            1 +
+            rendered_line_count(status) +
+            1 +
+            rendered_line_count(menu) -
+            4
+        )
+        remains = max(0, height - used_lines - rendered_line_count(footer))
+        process.stdout.write("\n" * remains)
+        process.stdout.write(footer)
 
 
     async def on_keypress(self, process: SSHServerProcess, key: str | bytes):
@@ -155,13 +166,11 @@ class GameScreen(Screen):
                 return SolutionScreen(self.answer, self.user_cells)
 
         if key.isdigit() and int(key) != 0:
-            from app.render.handler import clear_client
-
             try:
                 self.board.place(self.x, self.y, int(key))
 
                 if check_win(self.board.board):
-                    await self.render(process, clear_client)
+                    await process._diff_renderer.render(process, process._screen_manager, lambda _: None)
                     await sleep(1)
                     from app.render.screens.WinScreen import WinScreen
                     if self.render_task is not None:
@@ -171,7 +180,7 @@ class GameScreen(Screen):
                 if (self.x, self.y) in self.user_cells:
                     self.lives -= 1
                     if self.lives <= 0:
-                        await self.render(process, clear_client)
+                        await process._diff_renderer.render(process, process._screen_manager, lambda _: None)
                         await sleep(1)
                         from app.render.screens.GameOverScreen import GameOverScreen
                         if self.render_task is not None:
