@@ -1,7 +1,7 @@
 import random
 import re
 
-from app.backend.colors import bg_white, black, bg_yellow, bg_magenta, yellow, red
+from app.backend.colors import *
 
 ANSI_RE = re.compile(r'\x1b\[[0-9;]*m')
 REQUIRED_WIDTH = 64
@@ -48,32 +48,52 @@ def render_title(width: int, sections: list[str]) -> str:
     return bg_white(black(joined + " " * (width - len(joined))))
 
 
+def render_separator(current_x: int) -> str:
+    separator_chars = list("───────┼───────┼───────")
+    column_positions = [1, 3, 5, 9, 11, 13, 17, 19, 21]
+
+    separator_chars[column_positions[current_x - 1]] = bg_black(separator_chars[column_positions[current_x - 1]])
+
+    return "".join(separator_chars)
+
+
 def render_board(board: list[list[int]], user_cells: list[tuple[int, int]], width: int, current_x: int, current_y: int) -> str:
     lines: list[str] = []
+    user_cells_set = set(user_cells)
+    digit = board[current_y - 1][current_x - 1]
 
-    separator = "───────┼───────┼───────"
+    separator = render_separator(current_x)
 
     for y, row in enumerate(board):
         parts = []
 
         for x, value in enumerate(row):
+            position = (x + 1, y + 1)
             cell = str(value) if value != 0 else " "
-            if y + 1 == current_y and x + 1 == current_x:
+
+            if position == (current_x, current_y):
                 cell = black(cell)
-                if (x + 1, y + 1) in user_cells:
+                if position in user_cells_set:
                     cell = bg_yellow(cell)
                 else:
                     cell = bg_white(cell)
-            if (x + 1, y + 1) in user_cells:
+            elif y + 1 == current_y or x + 1 == current_x:
+                cell = bg_black(cell)
+
+            if position in user_cells_set:
                 cell = yellow(cell)
+
+            if value == digit and digit != 0:
+                cell = red(cell)
 
 
             parts.append(cell)
 
             if x % 3 == 2 and x != 8:
-                parts.append("│")
+                parts.append(bg_black("│") if y + 1 == current_y else "│")
 
-        lines.append(" ".join(parts))
+        ln = " ".join(parts) if y + 1 != current_y else bg_black(" ").join(parts)
+        lines.append(ln)
 
         if y % 3 == 2 and y != 8:
             lines.append(separator)
