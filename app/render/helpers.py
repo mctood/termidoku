@@ -67,7 +67,11 @@ def render_board(
 ) -> str:
     lines: list[str] = []
     user_cells_set = set(user_cells)
-    digit = board[current_y - 1][current_x - 1]
+
+    if 0 < current_y < 10 and 0 < current_x < 10:
+        digit = board[current_y - 1][current_x - 1]
+    else:
+        digit = 0
 
     separator = render_separator(current_x)
 
@@ -78,13 +82,10 @@ def render_board(
             position = (x + 1, y + 1)
             cell = str(value) if value != 0 else " "
 
-            if position in user_cells_set:
-                cell = yellow(cell)
-
+            # Determine background
             if position == error_position:
-                cell = black(bg_red(cell))
+                cell = bg_red(cell)
             elif position == (current_x, current_y):
-                cell = black(cell)
                 if position in user_cells_set:
                     cell = bg_yellow(cell)
                 else:
@@ -92,9 +93,15 @@ def render_board(
             elif y + 1 == current_y or x + 1 == current_x:
                 cell = bg_black(cell)
 
-            if value == digit and digit != 0:
+            # Determine foreground
+            if position == error_position:
+                cell = black(cell)
+            elif position == (current_x, current_y):
+                cell = black(cell)
+            elif value == digit and digit != 0:
                 cell = red(cell)
-
+            elif position in user_cells_set:
+                cell = yellow(cell)
 
             parts.append(cell)
 
