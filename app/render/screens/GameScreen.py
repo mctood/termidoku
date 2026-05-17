@@ -41,8 +41,10 @@ class GameScreen(Screen):
             missing = 20
         elif difficulty == 1:
             missing = 30
-        else:
+        elif difficulty == 2:
             missing = 40
+        else:
+            missing = 50
 
         board, answer = generate_sudoku(missing)
         self.board = Board(board)
