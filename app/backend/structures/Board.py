@@ -69,7 +69,7 @@ class Board:
 
         new_board[y - 1][x - 1] = value
 
-        if not Board.check(new_board) or value not in range(1, 10):
+        if not Board.check(new_board) or value not in range(0, 10):
             raise ValueError(f"Invalid move: {value} to ({x}, {y})")
 
         self.board = new_board

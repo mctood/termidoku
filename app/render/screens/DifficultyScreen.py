@@ -4,7 +4,7 @@ from asyncssh import SSHServerProcess
 
 from app.backend.colors import yellow, black, bg_yellow
 from app.backend.structures.Screen import Screen
-from app.render.helpers import center_visible, DIFFICULTIES, rendered_line_count
+from app.render.helpers import center_visible, DIFFICULTIES, rendered_line_count, disconnect
 
 from app.render.screens.GameScreen import GameScreen
 
@@ -69,7 +69,7 @@ class DifficultyScreen(Screen):
 
     async def on_keypress(self, process: SSHServerProcess, key: str | bytes):
         if key == 'q':
-            process.exit(0)
+            disconnect(process)
 
         if key == '\x1b[A' and self.selected > 0:
             self.selected -= 1

@@ -3,7 +3,8 @@ from typing import Callable
 from asyncssh import SSHServerProcess
 
 from app.backend.structures.Screen import Screen
-from app.render.helpers import center_visible
+from app.render.credits import CREDITS
+from app.render.helpers import center_visible, disconnect, center_multiline
 from app.render.logo import render_logo
 
 
@@ -14,8 +15,14 @@ class CreditsScreen(Screen):
         process.stdout.write(render_logo(width))
         process.stdout.write("\n\n")
 
-        process.stdout.write(center_visible("Some Credits", width))
+        for c in CREDITS:
+            text = center_multiline(c, width, 80)
+            process.stdout.write(text)
+            process.stdout.write("\n\n")
 
     async def on_keypress(self, process: SSHServerProcess, key: str | bytes):
+        if key == 'q':
+            disconnect(process)
+
         from app.render.screens.MenuScreen import MenuScreen
         return MenuScreen()

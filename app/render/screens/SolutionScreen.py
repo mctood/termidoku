@@ -21,7 +21,7 @@ class SolutionScreen(Screen):
         board = render_board(self.solution.board, self.user_cells, width, 0, 0)
         hint = center_visible("Press any key to continue.", width)
         footer = render_title(width, [
-            "ROGATKA, 2026",
+            "TERMIDOKU.XYZ",
             "ALL RIGHTS RESERVED",
             "CSAI ONE LOVE"
         ])

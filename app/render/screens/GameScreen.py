@@ -10,7 +10,7 @@ from app.backend.generate import generate_sudoku
 from app.backend.structures.Board import Board
 from app.backend.structures.Screen import Screen
 from app.backend.utils import check_win
-from app.render.helpers import center_visible, render_title, render_board, DIFFICULTIES, rendered_line_count
+from app.render.helpers import center_visible, render_title, render_board, DIFFICULTIES, rendered_line_count, disconnect
 
 MENU = [
     "View solution",
@@ -139,7 +139,7 @@ class GameScreen(Screen):
         )
         menu = render_menu(width, self.y)
         footer = render_title(width, [
-            "ROGATKA, 2026",
+            "TERMIDOKU.XYZ",
             "ALL RIGHTS RESERVED",
             "CSAI ONE LOVE"
         ])
@@ -166,8 +166,8 @@ class GameScreen(Screen):
 
 
     async def on_keypress(self, process: SSHServerProcess, key: str | bytes):
-        if key == "q":
-            process.exit(0)
+        if key == 'q':
+            disconnect(process)
 
         if key == "\x1b[A" and self.y > 1:
             self.y -= 1
@@ -188,6 +188,9 @@ class GameScreen(Screen):
                 if self.render_task is not None:
                     self.render_task.cancel()
                 return SolutionScreen(self.answer, self.user_cells)
+
+        if key == "\x7f" and (self.x, self.y) in self.user_cells:
+            self.board.place(self.x, self.y, 0)
 
         if key.isdigit() and int(key) != 0 and (self.x, self.y) in self.user_cells:
             try:

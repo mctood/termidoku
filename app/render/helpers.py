@@ -1,6 +1,8 @@
 import random
 import re
 
+from asyncssh import SSHServerProcess
+
 from app.backend.colors import *
 
 ANSI_RE = re.compile(r'\x1b\[[0-9;]*m')
@@ -40,6 +42,20 @@ def center_visible(text: str, width: int):
     right_outer = outer_padding - left_outer
 
     return " " * left_outer + text + " " * right_outer
+
+def center_multiline(text: str, width: int, max_width: int):
+    line = ""
+    lines = []
+    for word in text.split():
+        if len(line + word) > max_width or len(line + word) > width:
+            lines.append(line)
+            line = ""
+        line += word + " "
+    if line != "":
+        lines.append(line)
+
+    lines = list(map(lambda l: center_visible(l, width), lines))
+    return "\n".join(lines)
 
 
 def render_title(width: int, sections: list[str]) -> str:
@@ -121,3 +137,11 @@ def render_board(
 
 def get_quote():
     return random.choice(QUOTES)
+
+
+def disconnect(process: SSHServerProcess):
+    from app.render.handler import clear_client
+
+    clear_client(process)
+    process.channel.write("\033[?25h")
+    process.exit(0)

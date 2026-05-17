@@ -1,10 +1,11 @@
+from dis import disco
 from typing import Callable
 
 from asyncssh import SSHServerProcess
 
 from app.backend.colors import yellow, blue
 from app.backend.structures.Screen import Screen
-from app.render.helpers import center_visible, get_quote, render_title, rendered_line_count
+from app.render.helpers import center_visible, get_quote, render_title, rendered_line_count, disconnect
 
 from app.render.logo import render_logo
 from app.render.screens.CreditsScreen import CreditsScreen
@@ -94,7 +95,7 @@ class MenuScreen(Screen):
 
     async def on_keypress(self, process: SSHServerProcess, key: str | bytes):
         if key == 'q':
-            process.exit(0)
+            disconnect(process)
 
         if key == '\x1b[A' and self.selected > 0:
             self.selected -= 1
@@ -108,9 +109,6 @@ class MenuScreen(Screen):
             if self.selected == 1:
                 return CreditsScreen()
             if self.selected == 2:
-                from app.render.handler import clear_client
-
-                clear_client(process)
-                process.exit(0)
+                disconnect(process)
 
         return None
